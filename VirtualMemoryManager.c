@@ -1,6 +1,6 @@
 /*
 Steven Soderquist
-CSCI 343 Project 4 - Virtual Memory Manager
+CSCI 343 Operating Systems Project 4 - Virtual Memory Manager
 Dr. Don Allison
 Due date: 3 December 2018
 
@@ -11,7 +11,6 @@ If no free frame exists, then a frame is replaced in FIFO order
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
 #include "VirtualMemoryManager.h"
 
 // reads addresses from the input file, passing them to the mmu, which will translate the address and fetch bytes from physical memory
