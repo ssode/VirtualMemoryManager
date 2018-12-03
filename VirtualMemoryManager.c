@@ -126,9 +126,6 @@ int MMU_replace_page(MMU *mmu) {
 
 // inserts page and table into TLB in FIFO order
 void TLB_insert(TLB *tlb, int page, int frame) {
-	if (TLB_lookup(tlb, page) != -1)
-		return;
-
 	if (tlb->num_entries < TLB_ENTRIES) { // if it's not at capacity, just insert to first empty position
 		tlb->data[tlb->num_entries].page = page;
 		tlb->data[tlb->num_entries].frame = frame;
@@ -151,11 +148,8 @@ int TLB_lookup(TLB *tlb, int page) {
 
 // Page Table functions
 
-// inserts a page and frame to the page table if it does not already exist
+// associates a frame number with the page index in the page table
 void PageTable_insert(PageTable *pt, int page, int frame) {
-	if (PageTable_lookup(pt, page) != -1)
-		return;
-
 	pt->data[page] = frame;
 	pt->replace_queue[pt->next_empty] = page;
 	pt->next_empty = (pt->next_empty + 1) % (NUM_FRAMES + 1);
