@@ -38,7 +38,6 @@ int main(int argc, char **argv) {
 	MMU_destroy(&mmu);
 	fclose(input); // close input file
 	input = NULL;
-	getchar();
 	return 0;
 }
 
