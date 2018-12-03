@@ -19,7 +19,7 @@ typedef struct TLB {
 
 typedef struct PageTable {
 	int data[PAGE_TABLE_ENTRIES];
-	int replace_queue[NUM_FRAMES + 1];
+	int replace_queue[NUM_FRAMES];
 	int faults, oldest, next_empty;
 } PageTable;
 
