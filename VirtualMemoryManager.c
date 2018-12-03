@@ -88,7 +88,7 @@ void MMU_get_byte(MMU *mmu, int logical_addr) {
 	}
 	// get the signed byte from memory
 	signed char val = mmu->ram.memory[frame][offset];
-	int physical_addr = (frame << 8) | offset; // physical address is highest 8 bits frame number lowest 8 bits offset, so left shift frame num by 8 and or with offset to set those bits
+	int physical_addr = (frame << 8) | offset; // physical address is first 8 bits frame number second 8 bits offset, so left shift frame num by 8 and or with offset to set those bits
 	printf("Virtual address: %d  Physical address: %d  Value: %d\n", logical_addr, physical_addr, val);
 	mmu->translation_count++;
 }
@@ -102,7 +102,7 @@ int MMU_read_from_store(MMU *mmu, int page) {
 		frame = mmu->ram.num_frames_used;
 		mmu->ram.num_frames_used++;
 	}
-	fseek(mmu->backing_store, page * PAGE_SIZE, 0); // seek to start of given page
+	fseek(mmu->backing_store, page * PAGE_SIZE, SEEK_SET); // seek to start of given page
 	signed char buffer[PAGE_SIZE];
 	fread(buffer, sizeof(signed char), PAGE_SIZE, mmu->backing_store); // read 256 bytes into buffer
 	for (int i = 0; i < PAGE_SIZE; i++) {
@@ -116,7 +116,7 @@ int MMU_read_from_store(MMU *mmu, int page) {
 int MMU_replace_page(MMU *mmu) {
 	int page_to_replace = mmu->page_table.replace_queue[mmu->page_table.oldest];
 	int frame_to_replace = mmu->page_table.data[page_to_replace];
-	mmu->page_table.oldest = (mmu->page_table.oldest + 1) % (NUM_FRAMES);
+	mmu->page_table.oldest = (mmu->page_table.oldest + 1) % (NUM_FRAMES + 1);
 	mmu->page_table.data[page_to_replace] = -1;
 	return frame_to_replace;
 }
@@ -151,7 +151,7 @@ int TLB_lookup(TLB *tlb, int page) {
 void PageTable_insert(PageTable *pt, int page, int frame) {
 	pt->data[page] = frame;
 	pt->replace_queue[pt->next_empty] = page;
-	pt->next_empty = (pt->next_empty + 1) % (NUM_FRAMES);
+	pt->next_empty = (pt->next_empty + 1) % (NUM_FRAMES + 1);
 }
 
 // returns the frame that a page is referencing, or -1
