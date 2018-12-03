@@ -48,14 +48,14 @@ void MMU_init(MMU *mmu) {
 	mmu->translation_count = 0;
 	mmu->ram.num_frames_used = 0;
 	mmu->page_table.oldest = 0;
-	mmu->page_table.next_empty = 0;
+	mmu->page_table.newest = -1;
 	mmu->page_table.faults = 0;
 	for (int i = 0; i < PAGE_TABLE_ENTRIES; i++) {
 		mmu->page_table.data[i] = -1;
 	}
 	mmu->tlb.hits = 0;
-	mmu->tlb.num_entries = 0;
 	mmu->tlb.front = 0;
+	mmu->tlb.num_entries = 0;
 	mmu->backing_store = fopen("BACKING_STORE.bin", "rb");
 	if (mmu->backing_store == NULL) {
 		fprintf(stderr, "Error opening BACKING_STORE.bin\n"); 
@@ -116,7 +116,7 @@ int MMU_read_from_store(MMU *mmu, int page) {
 int MMU_replace_page(MMU *mmu) {
 	int page_to_replace = mmu->page_table.replace_queue[mmu->page_table.oldest];
 	int frame_to_replace = mmu->page_table.data[page_to_replace];
-	mmu->page_table.oldest = (mmu->page_table.oldest + 1) % (NUM_FRAMES + 1);
+	mmu->page_table.oldest = (mmu->page_table.oldest + 1) % (NUM_FRAMES);
 	mmu->page_table.data[page_to_replace] = -1;
 	return frame_to_replace;
 }
@@ -150,8 +150,8 @@ int TLB_lookup(TLB *tlb, int page) {
 // associates a frame number with the page index in the page table
 void PageTable_insert(PageTable *pt, int page, int frame) {
 	pt->data[page] = frame;
-	pt->replace_queue[pt->next_empty] = page;
-	pt->next_empty = (pt->next_empty + 1) % (NUM_FRAMES + 1);
+	pt->replace_queue[(pt->newest + 1) % NUM_FRAMES] = page;
+	pt->newest = (pt->newest + 1) % (NUM_FRAMES);
 }
 
 // returns the frame that a page is referencing, or -1

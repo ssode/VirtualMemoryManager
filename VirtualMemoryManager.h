@@ -14,13 +14,13 @@ typedef struct TLB_Data {
 
 typedef struct TLB {
 	TLB_Data data[TLB_ENTRIES];
-	int num_entries, front, hits;
+	int front, num_entries, hits;
 } TLB;
 
 typedef struct PageTable {
 	int data[PAGE_TABLE_ENTRIES];
 	int replace_queue[NUM_FRAMES];
-	int faults, oldest, next_empty;
+	int faults, oldest, newest;
 } PageTable;
 
 typedef struct DRAM {
