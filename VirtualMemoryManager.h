@@ -41,14 +41,14 @@ void MMU_init(MMU *mmu);
 void MMU_destroy(MMU *mmu);
 void MMU_get_byte(MMU *mmu, int logical_addr);
 int MMU_read_from_store(MMU *mmu, int page);
-int MMU_replace_page(MMU *mmu);
 
 // TLB functions
 void TLB_insert(TLB *tlb, int page, int frame);
 int TLB_lookup(TLB *tlb, int page);
 
 // Page Table functions
-void PageTable_insert(PageTable *pt, int page, int frame);
-int PageTable_lookup(PageTable *pt, int page);
+void PT_insert(PageTable *pt, int page, int frame);
+int PT_lookup(PageTable *pt, int page);
+int PT_replace_page(PageTable *pt);
 
 #endif

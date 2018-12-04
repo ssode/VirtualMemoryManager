@@ -77,7 +77,7 @@ void MMU_get_byte(MMU *mmu, int logical_addr) {
 	int frame = TLB_lookup(&mmu->tlb, page); // first check the TLB for the page
 
 	if (frame == -1) { // page wasn't in TLB, check the page table
-		frame = PageTable_lookup(&mmu->page_table, page);
+		frame = PT_lookup(&mmu->page_table, page);
 		if (frame == -1) { // not in page table, read form backing store
 			mmu->page_table.faults++;
 			frame = MMU_read_from_store(mmu, page);
@@ -97,7 +97,7 @@ void MMU_get_byte(MMU *mmu, int logical_addr) {
 int MMU_read_from_store(MMU *mmu, int page) {
 	int frame;
 	if (mmu->ram.num_frames_used == NUM_FRAMES) { // all frames are full, need to replace one
-		frame = MMU_replace_page(mmu);
+		frame = PT_replace_page(&mmu->page_table);
 	} else { // we will read into the next empty frame
 		frame = mmu->ram.num_frames_used;
 		mmu->ram.num_frames_used++;
@@ -108,17 +108,8 @@ int MMU_read_from_store(MMU *mmu, int page) {
 	for (int i = 0; i < PAGE_SIZE; i++) {
 		mmu->ram.memory[frame][i] = buffer[i];
 	}
-	PageTable_insert(&mmu->page_table, page, frame); // insert the page and frame to the table
+	PT_insert(&mmu->page_table, page, frame); // insert the page and frame to the table
 	return frame;
-}
-
-// finds the frame to replace and sets the page referencing it to -1
-int MMU_replace_page(MMU *mmu) {
-	int page_to_replace = mmu->page_table.replace_queue[mmu->page_table.oldest];
-	int frame_to_replace = mmu->page_table.data[page_to_replace];
-	mmu->page_table.oldest = (mmu->page_table.oldest + 1) % (NUM_FRAMES);
-	mmu->page_table.data[page_to_replace] = -1;
-	return frame_to_replace;
 }
 
 // TLB functions
@@ -148,15 +139,22 @@ int TLB_lookup(TLB *tlb, int page) {
 // Page Table functions
 
 // associates a frame number with the page index in the page table
-void PageTable_insert(PageTable *pt, int page, int frame) {
+void PT_insert(PageTable *pt, int page, int frame) {
 	pt->data[page] = frame;
 	pt->replace_queue[(pt->newest + 1) % NUM_FRAMES] = page;
 	pt->newest = (pt->newest + 1) % (NUM_FRAMES);
 }
 
 // returns the frame that a page is referencing, or -1
-int PageTable_lookup(PageTable *pt, int page) {
+int PT_lookup(PageTable *pt, int page) {
 	return pt->data[page];
 }
 
-
+// finds the frame to replace and sets the page referencing it to -1
+int PT_replace_page(PageTable *pt) {
+	int page_to_replace = pt->replace_queue[pt->oldest];
+	int frame_to_replace = pt->data[page_to_replace];
+	pt->oldest = (pt->oldest + 1) % (NUM_FRAMES);
+	pt->data[page_to_replace] = -1;
+	return frame_to_replace;
+}
